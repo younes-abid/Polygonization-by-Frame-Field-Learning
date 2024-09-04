@@ -135,15 +135,46 @@ def get_args():
     return args
 
 
+def reformat_file_name(path):
+    """
+    Reformats the file name to replace certain underscores with colons and a single space with a pipe in the timestamp.
+    Specifically targets the format:
+    'mapping_dataset.unet_resnet101_pretrained.train_val _ 2020-09-07 11_28_51'
+    to transform it into:
+    'mapping_dataset.unet_resnet101_pretrained.train_val | 2020-09-07 11:28:51'
+    """
+    dir_path, file_name = os.path.split(path)
+    
+    # Identify the base and date parts based on the expected format ending with ' _ YYYY-MM-DD HH_MM_SS'
+    if ' _ ' in file_name:
+        # Split at the specific ' _ ' sequence that precedes the date
+        base_part, date_time_part = file_name.split(' _ ', 1)
+
+        # Replace underscores in the date-time part with colons where they represent time
+        date_part, time_part = date_time_part.split(' ')
+        time_part = time_part.replace('_', ':', 2)
+
+        # Assemble the new file name with a properly trimmed pipe symbol
+        file_name = f"{base_part.strip()} | {date_part} {time_part}"
+
+    return os.path.join(dir_path, file_name)
+
 def launch_inference_from_filepath(args):
     from frame_field_learning.inference_from_filepath import inference_from_filepath
 
+    # Reformat file paths
+    #print(f"before reformat: {args.run_name}")
+    #args.run_name = [reformat_file_name(path) for path in args.run_name]
+    #print(f"after reformat: {args.run_name}")
+    
     # --- First step: figure out what run (experiment) is to be evaluated
     # Option 1: the run_name argument is given in which case that's our run
     run_name = None
     config = None
     if args.run_name is not None:
         run_name = args.run_name
+        
+
     # Else option 2: Check if a config has been given to look for the run_name
     if args.config is not None:
         config = run_utils.load_config(args.config)
@@ -159,6 +190,11 @@ def launch_inference_from_filepath(args):
 
     # --- Second step: get path to the run and if --config was not specified, load the config from the run's folder
     run_dirpath = frame_field_learning.local_utils.get_run_dirpath(args.runs_dirpath, run_name)
+    print("-"*100)
+    print('run_dirpath')
+    print(run_dirpath)
+    print("-"*100)
+   
     if config is None:
         config = run_utils.load_config(config_dirpath=run_dirpath)
     if config is None:
