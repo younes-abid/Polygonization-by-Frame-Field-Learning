@@ -19,8 +19,8 @@ skan==0.11.1
 tensorboard==2.17.1
 torch==1.13
 #torch_lydorn
-torch_scatter==2.1.2
 torchvision==0.14.0
+torch_scatter==2.1.2
 tqdm==4.66.5
 GDAL==3.6.2
 jsmin==3.0.1
